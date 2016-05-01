@@ -11,17 +11,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160430121722) do
+ActiveRecord::Schema.define(version: 20160501090708) do
 
   create_table "articles", force: :cascade do |t|
     t.string   "title"
-    t.string   "content"
+    t.text     "content"
     t.string   "url"
     t.datetime "pub_date"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
     t.integer  "feed_channel_id"
     t.string   "author"
+    t.string   "hero_image"
   end
 
   add_index "articles", ["feed_channel_id"], name: "index_articles_on_feed_channel_id"

@@ -7,6 +7,6 @@ class Article < ApplicationRecord
   end
 
   def channel
-    feed_channel.title
+    feed_channel.title || feed_channel.url
   end
 end

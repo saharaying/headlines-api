@@ -24,8 +24,14 @@ namespace :feed do
           channel.update_attributes last_modified: feed.last_modified, title: feed.title
           feed.entries.each do |entry|
             unless channel.articles.exists?(url: entry.url)
-              categories = entry.categories.map {|c| Category.find_or_create_by label: c }
-              channel.articles.create title: entry.title, url: entry.url, pub_date: entry.published, author: entry.author, categories: categories
+              categories = entry.categories.map { |c| Category.find_or_create_by label: c }
+              article_attributes = {
+                  title: entry.title, url: entry.url, pub_date: entry.published, author: entry.author,
+                  categories: categories
+              }
+              article_attributes[:hero_image] = entry.image if entry.image.present?
+              article_attributes[:content] = entry.content if entry.content.present?
+              channel.articles.create article_attributes
               print '.'
             end
           end
