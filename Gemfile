@@ -24,7 +24,8 @@ gem 'feedjira'
 gem 'will_paginate', '~> 3.1'
 gem 'api-pagination', '~> 4.3'
 
-gem 'pismo', '~> 0.7.4'
+# gem 'pismo', '~> 0.7.4'
+gem 'spidergo', path: '~/Projects/spidergo'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

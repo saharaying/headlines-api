@@ -15,13 +15,12 @@ namespace :feed do
 
   desc 'get feeds data'
   task fetch: :environment do
-    FeedChannel.all.each do |channel|
+    FeedChannel.enabled.each do |channel|
       begin
         puts "Start fetching from #{channel.url}"
         feed = Feedjira::Feed.fetch_and_parse channel.url
         if channel.last_modified.blank? || feed.last_modified > channel.last_modified
           print "\tStart inserting articles"
-          channel.update_attributes last_modified: feed.last_modified, title: feed.title
           feed.entries.each do |entry|
             unless channel.articles.exists?(url: entry.url)
               categories = entry.categories.map { |c| Category.find_or_create_by label: c }
@@ -29,12 +28,13 @@ namespace :feed do
                   title: entry.title, url: entry.url, pub_date: entry.published, author: entry.author,
                   categories: categories
               }
-              article_attributes[:hero_image] = entry.image if entry.image.present?
-              article_attributes[:content] = entry.content if entry.content.present?
+              article_attributes[:content] = article_content(entry)
+              article_attributes[:hero_image] = hero_image(entry)
               channel.articles.create article_attributes
               print '.'
             end
           end
+          channel.update_attributes last_modified: feed.last_modified, title: feed.title
           print "\n"
         end
       rescue Feedjira::FetchFailure => e
@@ -43,4 +43,23 @@ namespace :feed do
     end
   end
 
+  task fetch_all: [:update_channels, :fetch]
+
+  def article_content entry
+    return entry.content if entry.content.present?
+    return entry.summary if entry.summary.present?
+    spidergo_doc(entry.url).try :article
+  end
+
+  def hero_image entry
+    return entry.image if entry.image.present?
+    spidergo_doc(entry.url).try :hero_image
+  end
+
+  def spidergo_doc url
+    @spidergo_doc ||= {}
+    @spidergo_doc[url] ||= Spidergo.document(url)
+  rescue StandardError
+    nil
+  end
 end
