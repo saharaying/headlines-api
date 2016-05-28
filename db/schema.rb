@@ -11,18 +11,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160502041436) do
+ActiveRecord::Schema.define(version: 20160526152413) do
 
   create_table "articles", force: :cascade do |t|
     t.string   "title"
     t.text     "content"
     t.string   "url"
     t.datetime "pub_date"
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
     t.integer  "feed_channel_id"
     t.string   "author"
-    t.string   "hero_image"
+    t.string   "hero_media"
+    t.string   "hero_media_type", default: "image"
   end
 
   add_index "articles", ["feed_channel_id"], name: "index_articles_on_feed_channel_id"
@@ -45,9 +46,10 @@ ActiveRecord::Schema.define(version: 20160502041436) do
     t.string   "url"
     t.string   "title"
     t.datetime "last_modified"
-    t.datetime "created_at",                    null: false
-    t.datetime "updated_at",                    null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
     t.boolean  "disabled",      default: false
+    t.string   "media_type",    default: "image"
   end
 
 end

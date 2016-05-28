@@ -25,7 +25,10 @@ gem 'will_paginate', '~> 3.1'
 gem 'api-pagination', '~> 4.3'
 
 # gem 'pismo', '~> 0.7.4'
-gem 'spidergo', path: '~/Projects/spidergo'
+# gem 'metainspector', '~> 5.2', '>= 5.2.1'
+# gem 'spidergo', path: '~/Projects/spidergo'
+gem 'fastimage'
+gem "ruby-readability", :require => 'readability'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

@@ -1,20 +1,28 @@
+require 'readability'
+require 'open-uri'
+
 namespace :feed do
   desc 'update feed channels'
   task update_channels: :environment do
-    feed_urls = %w(
-      http://nationalgeographicphotos.tumblr.com/rss
-      http://tvblogs.nationalgeographic.com/feed/
-      http://potd.pdnonline.com/feed/
+    image_channels = %w(
       http://www.nationalgeographic.com.cn/index.php?m=content&c=feed
     )
+    video_channels = %w(
+      https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
+    )
 
-    feed_urls.each do |url|
+    image_channels.each do |url|
       FeedChannel.find_or_create_by url: url
+    end
+    video_channels.each do |url|
+      FeedChannel.find_or_create_by url: url, media_type: 'video'
     end
   end
 
   desc 'get feeds data'
   task fetch: :environment do
+    include ActionView::Helpers::SanitizeHelper
+
     FeedChannel.enabled.each do |channel|
       begin
         puts "Start fetching from #{channel.url}"
@@ -29,7 +37,7 @@ namespace :feed do
                   categories: categories
               }
               article_attributes[:content] = article_content(entry)
-              article_attributes[:hero_image] = hero_image(entry)
+              article_attributes.merge! hero_media_attrs(entry, channel)
               channel.articles.create article_attributes
               print '.'
             end
@@ -46,19 +54,19 @@ namespace :feed do
   task fetch_all: [:update_channels, :fetch]
 
   def article_content entry
-    return entry.content if entry.content.present?
-    return entry.summary if entry.summary.present?
-    spidergo_doc(entry.url).try :article
+    content = entry.content.try :sanitize
+    return entry.content if content.present? && strip_tags(content).length > 300
+    readability(entry.url).try :content
   end
 
-  def hero_image entry
-    return entry.image if entry.image.present?
-    spidergo_doc(entry.url).try :hero_image
+  def hero_media_attrs entry, channel
+    hero_media = entry.image.present? ? entry.image : readability(entry.url).try(:images).try(:first)
+    {hero_media: hero_media, hero_media_type: channel.media_type}
   end
 
-  def spidergo_doc url
-    @spidergo_doc ||= {}
-    @spidergo_doc[url] ||= Spidergo.document(url)
+  def readability url
+    @readability_doc ||= {}
+    @readability_doc[url] ||= Readability::Document.new(open(url).read, tags: %w[div p img a], attributes: %w[src href], remove_empty_nodes: false)
   rescue StandardError
     nil
   end
